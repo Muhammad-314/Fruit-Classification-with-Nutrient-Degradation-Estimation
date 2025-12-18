@@ -1,66 +1,204 @@
-The project is implemented using a modular, three-part architecture: a data augmentation pipeline, a deep learning training script, and a graphical user interface (GUI) for real-time prediction and user management. The entire system is built primarily on Python, leveraging the power of PyTorch for the core machine learning tasks and Tkinter for the interactive user application.
+# 🍎 Ultra Fruit Ripeness Analyzer
 
-1. Dataset Generation and Augmentation
-Given the absence of a large, pre-labelled, multi-stage fruit dataset, the system employs aggressive data augmentation to artificially expand a smaller collection of source images (including some AI-generated images) into a comprehensive dataset.
-Data Structure and Classes
-The project classifies four fruits, each with a defined number of ripeness stages:
- Banana: 9 stages
- Orange: 5 stages
- Mango: 4 stages
- Apple: 3 stages
-Augmentation Methods
-1. Keras ImageDataGenerator: This method is applied aggressively to generate 100 training images and 20 validation images per source image. Key augmentation parameters include:
-o Geometric Transformations: Rotation (+ 40 %), Shifts (horizontal/vertical + 30%), Shear (+ 30 %), and Zoom (+ 30%).
-o Colour/Lighting Variations: Horizontal/Vertical Flip, Brightness (50% to 150%), and Channel Shift .
-2. Manual PIL Augmentations : This provides complementary variations focusing on different methods, generating 30 training images and 5 validation images per source image. It incorporates random rotation, scaling, and brightness/contrast adjustments using the PIL library.
-The combined approach ensures a diverse and extensive training set, where each source image contributes 130 training examples and 25 validation examples to its corresponding class.
+**AI-Powered Quality Assessment System using ResNet-18 & Computer Vision**
 
-2. Model Training
-It handles the core deep learning task: training a state-of-the-art Convolutional Neural Network (CNN) model on the augmented dataset.
-Hardware Acceleration
-12
-The script features a strict GPU-enforced training environment, prioritising acceleration for efficiency. The get_device function implements a smart device detection hierarchy :
-1. NVIDIA CUDA: Utilised if an NVIDIA GPU is present.
-2. AMD DirectML: Used for AMD/Intel GPUs if the torch-directml package is installed.
-3. No CPU Fallback: If neither GPU is available, the training is halted to ensure high-performance execution.
-Model Architecture and Configuration
- Base Model: ResNet-18 is used as the backbone architecture, initialised with pre-trained weights to benefit from transfer learning.
- Output Layer: The final fully connected layer is modified to output 21 classes (matching the total number of fruit stage classes).
- Training Configuration:
-o Loss Function: Cross Entropy Loss (Standard for multi-class classification).
-o Optimiser: Adam optimizer with a learning rate of 0.001.
-o Scheduler: Learning rate Scheduler to decrease the learning rate by a factor of 0.1 every 7 epochs, promoting convergence.
-o Epochs: Trained for a total of 50 epochs.
-Data Loading
-The augmented data is loaded via PyTorch ImageFolder and DataLoader, applying specific transforms for training (including rotation, flip, and colour jitter) and validation (resizing and normalisation). The process handles datasets that are pre-split into train/val directories or performs an 80/20 split automatically if raw data is provided.
-The best model weights, based on validation accuracy, are saved to a file named fruit_resnet_model.pth for deployment.
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-ResNet18-red)
+![OpenCV](https://img.shields.io/badge/Computer_Vision-OpenCV-green)
+![Status](https://img.shields.io/badge/Status-Active-success)
 
-3. Prediction and Deployment GUI
-The prediction.py script runs the deployed model within a Tkinter-based GUI, providing a user-friendly, feature-rich application for live fruit analysis. The application is divided into three main functional systems .
-13
-3.1 Fruit Prediction Engine (FruitPredictor)
-This is the core of the application, responsible for running the AI model and nutrient analysis .
- Model Loading: The saved PyTorch model is loaded, ensuring it runs on the best available device (CUDA, DirectML, or CPU).
- Prediction Logic:
-1. PyTorch Inference: The preprocessed image is fed to the ResNet-18 model to get the Top classification predictions.
-2. Computer Vision (CV) Rot Check: A supplementary OpenCV check (is_rotten method) uses colour space analysis (HSV and LAB) to detect excessive brown, dark, or mould areas in the image, providing an independent measure of decay.
- Nutrient Database: literature derived NUTRIENT TABLES provides stage-specific nutritional information (sugar, Vitamin C, fibre, calories) and benefits for displaying alongside the prediction.
- The confidence calculation method uses a standard PyTorch implementation involving the Softmax function:
-The confidence score represents the model's certainty that the input image belongs to the predicted ripeness stage (e.g., banana_stage_5).
-1. Model Output (Logits)
-The PyTorch model processes the input image and outputs a set of raw, unnormalized scores called logits for each possible class (ripess stage).
-2. Test-Time Augme
- Input Duplication: The image is processed twice: once as the Original image and once as a Horizontally Flipped image.
- Batch Prediction: Both images are stacked into a batch and passed through the model.
- Probability Calculation (Softmax): The raw logits from both the Original and Flipped predictions are converted into probabilities using the Softmax function. This ensures the scores for each prediction sum to 1.
-3. TTA Averaging
-The core of the TTA technique is to average the probabilities from the augmented (flipped) and original inputs:
-4. Ranking and Final Confidence
-The avg_probs vector is then sorted, and the highest value is selected as the final prediction's confidence score:
- The class with the highest average probability is determined as the final predicted label_1 (e.g., banana_stage_5).
- The actual value of this highest probability is assigned as the final conf_1.
-3.2 User Interface
-The main application screen features :
- Input: Users can load images via file browsing or live camera feed (using OpenCV for capture).
- Prediction Display: Results are presented in a colour-coded card format, showing the predicted stage name, confidence, and a full nutritional breakdown when the fruit is not rotten.
- Fruit Selection: A dropdown allows the user to filter predictions for a specific fruit (e.g., only classify for 'banana' stages) or use the default 'auto' mode.
+## 📋 Overview
+
+The **Ultra Fruit Ripeness Analyzer** is a comprehensive desktop application designed to classify the ripeness stages of fruits (Apple, Banana, Mango, Orange) and detect rotten produce.
+
+It combines **Deep Learning (ResNet-18)** for classification with traditional **Computer Vision (OpenCV)** for rotten spot detection. The application features a robust GUI, user authentication, nutritional breakdown, and explainable AI using Grad-CAM heatmaps.
+
+## ✨ Key Features
+
+* **🔍 Multi-Fruit Classification:** Supports Bananas (9 stages), Oranges (5 stages), Mangoes (4 stages), and Apples (3 stages).
+* **🧠 Explainable AI:** Uses **Grad-CAM** to generate heatmaps, showing exactly which part of the fruit the AI is focusing on.
+* **🛡️ Safety Logic:** Hybrid detection system combining AI confidence scores with HSV/LAB color space analysis to prevent "Rotten" false negatives.
+* **📊 Nutritional Data:** Displays dynamic sugar, fiber, and vitamin content based on the specific ripeness stage.
+* **👤 User System:** Secure Login/Signup with SHA-256 password hashing.
+* **🔔 Notifications:** Integrated Telegram and Email alerts when rotten fruit is detected.
+* **📸 Real-Time Analysis:** Supports both file browsing and live webcam feed.
+
+## 🛠️ Tech Stack
+
+This project uses a hybrid approach:
+* **Data Augmentation:** TensorFlow/Keras (ImageDataGenerator)
+* **Model Training & Inference:** PyTorch (ResNet-18, Transfer Learning)
+* **GUI:** Tkinter (Standard Python Library)
+* **Image Processing:** OpenCV, PIL
+* **Visualization:** Matplotlib, Seaborn, Grad-CAM
+
+## 📂 Project Structure
+
+```text
+├── data/                       # [Create this] Source raw images here
+│   ├── Banana/                 # Organized by Fruit -> stage_X
+│   │   ├── stage_1/
+│   │   └── ...
+├── augmented_dataset/          # Generated automatically by dataset_generator.py
+├── users.json                  # Stores user credentials (auto-generated)
+├── fruit_resnet_model.pth      # Trained model file (generated by training.py)
+├── prediction.py               # 🚀 Main Application (GUI)
+├── training.py                 # 🧠 Model Training Script
+├── dataset_generator.py        # 💿 Data Augmentation Script
+└── requirements.txt            # Dependencies
+```
+
+## ⚙️ Installation & Setup
+
+### 1. Prerequisites
+- **Python**: 3.8, 3.9, or 3.10 (recommended)
+- **Webcam**: Optional (required only for live detection)
+- **GPU**: Recommended for training  
+  - NVIDIA CUDA or AMD DirectML supported  
+  - CPU works fine for inference
+
+---
+
+### 2. Clone the Repository
+```bash
+git clone https://github.com/yourusername/fruit-analyzer.git
+cd fruit-analyzer
+```
+
+### 3. Install Dependencies
+
+Create a `requirements.txt` file with the following content:
+
+```txt
+torch
+torchvision
+torchaudio
+tensorflow
+opencv-python
+pillow
+matplotlib
+seaborn
+scikit-learn
+grad-cam
+requests
+```
+
+
+Install all dependencies:
+
+```bash
+pip install -r requirements.txt
+Note: If you have an NVIDIA GPU, make sure to install the CUDA-enabled version of PyTorch from the official PyTorch website.
+```
+
+🚀 Usage Workflow
+-----------------
+
+Follow this exact order to run the project from scratch.
+
+### Step 1: Prepare Data
+
+Create a folder named data in the root directory and organize your raw images as follows:
+```
+    data/   
+      └── {FruitName}/
+            └── stage_{number}/           
+                    └── image.jpg
+```
+
+Example:
+`   data/Apple/stage_1/apple_01.jpg   `
+
+### Step 2: Generate Dataset
+
+Run the dataset generator to create augmented images, balance classes, and split data into training and validation sets.
+```
+python dataset_generator.py
+```
+
+**Output:**
+
+*   augmented\_dataset/ directory is created automatically
+    
+
+### Step 3: Train the AI
+
+Train the **ResNet-18** model using the generated dataset.
+```
+python training.py
+```
+
+**Output files generated:**
+
+*   fruit\_resnet\_model.pth
+    
+*   confusion\_matrix.png
+    
+*   training\_results.png
+    
+
+### Step 4: Run the Application
+
+Launch the GUI application:
+```
+python prediction.py
+```
+
+<img width="1920" height="1032" alt="Screenshot 2025-12-06 153304" src="https://github.com/user-attachments/assets/640d2ac7-cf82-415e-9a8d-587ae91c440c" />
+
+<img width="1920" height="1032" alt="Screenshot 2025-12-06 153242" src="https://github.com/user-attachments/assets/dfb3dc2a-8fca-4e4e-8444-bff744b5ad0c" />
+
+<img width="1920" height="1032" alt="Screenshot 2025-12-06 153109" src="https://github.com/user-attachments/assets/62946141-7086-49cd-8af9-a4727b58a162" />
+
+<img width="1920" height="1032" alt="Screenshot 2025-12-06 152353" src="https://github.com/user-attachments/assets/4ba71071-d985-4b5e-81db-67dd97ec04a1" />
+
+<img width="1920" height="1032" alt="Screenshot 2025-12-06 152636" src="https://github.com/user-attachments/assets/fbf2f5f5-dba1-449a-a56b-efb724ee9cae" />
+<img width="1920" height="1032" alt="Screenshot 2025-12-06 152712" src="https://github.com/user-attachments/assets/b1eea8ad-ae9b-464c-b111-9c1a8d3c85f4" />
+
+
+
+
+
+🖥️ Application Controls
+------------------------
+
+*   **Login / Signup**Create an account to access the dashboard.
+    
+*   **Select Fruit**Choose the fruit type from the dropdown (mandatory for accurate nutritional information).
+    
+*   **Input Source**
+    
+    *   **Browse**: Load an image from your computer
+        
+    *   **Start Camera**: Use live webcam feed
+        
+*   **Analyze**Click **Analyze** to run AI inference on the selected input.
+    
+*   **🔥 View AI Heatmap**After analysis, click this option to view the Grad-CAM visualization.
+    
+*   **Settings**Configure:
+    
+    *   Telegram Bot Token
+        
+    *   Email SMTP credentialsfrom the **Notifications** menu.
+        
+
+🤝 Contributing
+---------------
+
+Contributions are welcome and appreciated!
+
+1.  Fork the repository
+    
+2.  git checkout -b feature/AmazingFeature
+    
+3.  git commit -m "Add some AmazingFeature"
+    
+4.  git push origin feature/AmazingFeature
+    
+5.  Open a Pull Request 🚀
+
+
+
+
+
