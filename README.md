@@ -1,8 +1,3 @@
-Fruits are an essential part of the human diet, providing vital nutrients such as vitamins, minerals, dietary fibre, and antioxidants. Nutrient composition, however, changes significantly during ripening, storage, and spoilage. Overripe or rotten fruits may loose nutritional value but may also pose health risks due to microbial contamination.
-Traditionally, nutrient quantification requires laboratory-based chemical analyses like HPLC, enzymatic assays, or spectrophotometry. While accurate, these methods are time-consuming, expensive, and require specialised equipment, making them impractical for routine or large-scale assessment.
-With advances in computer vision and machine learning, it is now possible to estimate fruit ripeness and nutrient content using images. Visual cues like colour, texture, and shape correlate with chemical composition. This project aims to create a non-invasive, image-based system.
-
-
 The project is implemented using a modular, three-part architecture: a data augmentation pipeline, a deep learning training script, and a graphical user interface (GUI) for real-time prediction and user management. The entire system is built primarily on Python, leveraging the power of PyTorch for the core machine learning tasks and Tkinter for the interactive user application.
 
 1. Dataset Generation and Augmentation
@@ -14,7 +9,6 @@ The project classifies four fruits, each with a defined number of ripeness stage
  Mango: 4 stages
  Apple: 3 stages
 Augmentation Methods
-The script generates an augmented_dataset directory, split into train and val subdirectories for model development. Two distinct methods are used to create image variations :
 1. Keras ImageDataGenerator: This method is applied aggressively to generate 100 training images and 20 validation images per source image. Key augmentation parameters include:
 o Geometric Transformations: Rotation (+ 40 %), Shifts (horizontal/vertical + 30%), Shear (+ 30 %), and Zoom (+ 30%).
 o Colour/Lighting Variations: Horizontal/Vertical Flip, Brightness (50% to 150%), and Channel Shift .
@@ -55,8 +49,7 @@ This is the core of the application, responsible for running the AI model and nu
 The confidence score represents the model's certainty that the input image belongs to the predicted ripeness stage (e.g., banana_stage_5).
 1. Model Output (Logits)
 The PyTorch model processes the input image and outputs a set of raw, unnormalized scores called logits for each possible class (ripess stage).
-2. Test-Time Augmentation (TTA)
-To improve robustness and accuracy, the code uses TTA:
+2. Test-Time Augme
  Input Duplication: The image is processed twice: once as the Original image and once as a Horizontally Flipped image.
  Batch Prediction: Both images are stacked into a batch and passed through the model.
  Probability Calculation (Softmax): The raw logits from both the Original and Flipped predictions are converted into probabilities using the Softmax function. This ensures the scores for each prediction sum to 1.
